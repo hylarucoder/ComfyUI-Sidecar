@@ -19,8 +19,9 @@ function App() {
       //   const pullResult = await invoke("pull_repo", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
       //   setUpdateMessage(pullResult ? "Repository updated successfully" : "Failed to update repository");
       // }
+      setIsLatest(true);
       const log = await invoke("repo_git_log", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
-      setGitLog(log);
+      setGitLog(log as any);
     } catch (error) {
       console.error("Error checking/updating repository:", error);
       setUpdateMessage("Error checking/updating repository");
