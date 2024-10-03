@@ -1,7 +1,30 @@
+use std::fmt::Debug;
 use std::io::Write;
 use std::path::Path;
 use gix::{prelude::ObjectIdExt, Reference};
 use log::{debug};
+
+pub fn git_log(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let repo = gix::discover(path)?;
+    debug!("Repo: {}", repo.work_dir().unwrap_or_else(|| repo.git_dir()).display());
+
+    // traversal involving date caused it to be set
+    let mut oid = repo.head()?.try_into_peeled_id()?.ok_or("not ok")?.ancestors().all()?.map_while(Result::ok);
+
+    let mut commits = Vec::new();
+    for (i, commit) in oid.take(10).enumerate() {
+        let time = commit.commit_time();
+        let message = commit.object().unwrap().id.to_hex().to_string();
+        let hash = commit.id.to_hex().to_string();
+
+        commits.push(format!("Commit {}: {} - {} - {}", i + 1, time, hash, message));
+        if i == 9 {
+            break;
+        }
+    }
+
+    Ok(commits)
+}
 
 pub fn stats_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut repo = gix::discover(path)?;

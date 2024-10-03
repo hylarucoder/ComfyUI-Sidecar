@@ -8,16 +8,19 @@ function App() {
   const [name, setName] = useState("");
   const [isLatest, setIsLatest] = useState(true);
   const [updateMessage, setUpdateMessage] = useState("");
+  const [gitLog, setGitLog] = useState([]);
 
   async function checkAndUpdateRepo() {
     try {
-      const isUpToDate = await invoke("check_repo_status", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
-      setIsLatest(isUpToDate as boolean);
+      // const isUpToDate = await invoke("check_repo_status", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
+      // setIsLatest(isUpToDate as boolean);
       
       // if (!isUpToDate) {
       //   const pullResult = await invoke("pull_repo", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
       //   setUpdateMessage(pullResult ? "Repository updated successfully" : "Failed to update repository");
       // }
+      const log = await invoke("repo_git_log", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
+      setGitLog(log);
     } catch (error) {
       console.error("Error checking/updating repository:", error);
       setUpdateMessage("Error checking/updating repository");
@@ -53,6 +56,12 @@ function App() {
 
       <p>{isLatest ? "ComfyUI is up to date" : "ComfyUI needs updating"}</p>
       <p>{updateMessage}</p>
+
+      <div>
+        {gitLog.map((log, index) => (
+          <p key={index}>{log}</p>
+        ))}
+      </div>
 
       <form
         className="row"
