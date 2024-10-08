@@ -1,15 +1,24 @@
+use gix::{prelude::ObjectIdExt, Reference};
+use log::debug;
 use std::fmt::Debug;
 use std::io::Write;
 use std::path::Path;
-use gix::{prelude::ObjectIdExt, Reference};
-use log::{debug};
 
 pub fn git_log(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let repo = gix::discover(path)?;
-    debug!("Repo: {}", repo.work_dir().unwrap_or_else(|| repo.git_dir()).display());
+    debug!(
+        "Repo: {}",
+        repo.work_dir().unwrap_or_else(|| repo.git_dir()).display()
+    );
 
     // traversal involving date caused it to be set
-    let mut oid = repo.head()?.try_into_peeled_id()?.ok_or("not ok")?.ancestors().all()?.map_while(Result::ok);
+    let mut oid = repo
+        .head()?
+        .try_into_peeled_id()?
+        .ok_or("not ok")?
+        .ancestors()
+        .all()?
+        .map_while(Result::ok);
 
     let mut commits = Vec::new();
     for (i, commit) in oid.take(10).enumerate() {
@@ -17,7 +26,13 @@ pub fn git_log(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let message = commit.object().unwrap().id.to_hex().to_string();
         let hash = commit.id.to_hex().to_string();
 
-        commits.push(format!("Commit {}: {} - {} - {}", i + 1, time, hash, message));
+        commits.push(format!(
+            "Commit {}: {} - {} - {}",
+            i + 1,
+            time,
+            hash,
+            message
+        ));
         if i == 9 {
             break;
         }
@@ -28,7 +43,10 @@ pub fn git_log(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
 
 pub fn stats_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut repo = gix::discover(path)?;
-    println!("Repo: {}", repo.work_dir().unwrap_or_else(|| repo.git_dir()).display());
+    println!(
+        "Repo: {}",
+        repo.work_dir().unwrap_or_else(|| repo.git_dir()).display()
+    );
     let mut max_parents = 0;
     let mut avg_parents = 0;
     repo.object_cache_size(32 * 1024);
@@ -54,7 +72,10 @@ pub fn stats_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Most recent commit message");
 
-    let object = most_recent_commit_id.expect("already checked").attach(&repo).object()?;
+    let object = most_recent_commit_id
+        .expect("already checked")
+        .attach(&repo)
+        .object()?;
     let commit = object.into_commit();
     println!("{}", commit.message_raw()?);
     std::io::stdout().flush()?;
@@ -164,8 +185,7 @@ pub mod visit {
 
 pub fn git_clone(repo_url: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new(path);
-    gix::prepare_clone(repo_url, path)?
-        .with_remote_name("origin");
+    gix::prepare_clone(repo_url, path)?.with_remote_name("origin");
     Ok(())
 }
 
