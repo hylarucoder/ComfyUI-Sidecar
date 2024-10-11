@@ -1,16 +1,16 @@
+use axum::routing::{get, head, post};
+use axum::Router;
+use serde::Deserialize;
 use std::sync::OnceLock;
 use tower_http::services::{ServeDir, ServeFile};
-use axum::Router;
-use axum::routing::{get, post, head};
-use serde::Deserialize;
 
 mod git_plus;
 mod web;
-use git_plus::git_clone;
-use tauri::{Manager, Window};
-use git_plus::stats_repo;
-use git_plus::git_pull;
 use crate::web::get_routes;
+use git_plus::git_clone;
+use git_plus::git_pull;
+use git_plus::stats_repo;
+use tauri::{Manager, Window};
 
 static WINDOW: OnceLock<Window> = OnceLock::new();
 
@@ -30,13 +30,19 @@ fn pull_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tauri::command]
-fn list_commit(path: &str) -> Result<bool, String> {
+fn git_list_commits(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
 
 #[tauri::command]
-fn check_repo_status(path: &str) -> Result<bool, String> {
+fn git_check_commit(path: &str) -> Result<bool, String> {
+    stats_repo(path).unwrap();
+    Ok(true)
+}
+
+#[tauri::command]
+fn git_check_version(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
@@ -63,14 +69,22 @@ pub fn run() {
 
     env_logger::init();
     tauri::Builder::default()
+        // .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        // .plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_persisted_scope::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
             let window = app.get_window("main").unwrap();
 
             _ = WINDOW.set(window);
 
             tauri::async_runtime::spawn(async move {
-                let rt = Router::new()
-                    .merge(get_routes());
+                let rt = Router::new().merge(get_routes());
                 let addr = "127.0.0.1:8090";
                 let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
                 log::info!("App is running on {}", addr);
@@ -81,9 +95,9 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![check_repo_status])
+        .invoke_handler(tauri::generate_handler![git_check_commit])
         .invoke_handler(tauri::generate_handler![repo_git_log])
-        // .invoke_handler(tauri::generate_handler![clone_repo])   
+        // .invoke_handler(tauri::generate_handler![clone_repo])
         // .invoke_handler(tauri::generate_handler![pull_repo])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
