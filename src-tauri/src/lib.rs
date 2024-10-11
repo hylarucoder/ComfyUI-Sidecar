@@ -15,34 +15,34 @@ use tauri::{Manager, Window};
 static WINDOW: OnceLock<Window> = OnceLock::new();
 
 #[tauri::command]
-fn greet(name: &str) -> String {
+fn hello(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
 #[tauri::command]
-fn clone_repo(repo_url: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn repo_git_clone(repo_url: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
     git_clone(repo_url, path)
 }
 
 #[tauri::command]
-fn pull_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn repo_git_pull(path: &str) -> Result<(), Box<dyn std::error::Error>> {
     git_pull(path)
 }
 
 #[tauri::command]
-fn git_list_commits(path: &str) -> Result<bool, String> {
+fn repo_git_list_commits(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
 
 #[tauri::command]
-fn git_check_commit(path: &str) -> Result<bool, String> {
+fn repo_git_checkout_commit(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
 
 #[tauri::command]
-fn git_check_version(path: &str) -> Result<bool, String> {
+fn repo_git_checkout_version(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
@@ -94,8 +94,12 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![git_check_commit])
+        .invoke_handler(tauri::generate_handler![hello])
+        .invoke_handler(tauri::generate_handler![repo_git_clone])
+        .invoke_handler(tauri::generate_handler![repo_git_pull])
+        .invoke_handler(tauri::generate_handler![repo_git_list_commits])
+        .invoke_handler(tauri::generate_handler![repo_git_checkout_commit])
+        .invoke_handler(tauri::generate_handler![repo_git_checkout_version])
         .invoke_handler(tauri::generate_handler![repo_git_log])
         // .invoke_handler(tauri::generate_handler![clone_repo])
         // .invoke_handler(tauri::generate_handler![pull_repo])
