@@ -1,13 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
-import {
-  createBrowserRouter,
-  Link,
-  Outlet,
-  RouterProvider,
-  useLocation,
-} from 'react-router-dom'
+import { createBrowserRouter, Link, Outlet, RouterProvider, useLocation } from 'react-router-dom'
 import { Versions } from '@/pages/versions.tsx'
 import App from './App'
 import {
@@ -15,12 +9,9 @@ import {
   Book,
   Bot,
   Code2,
-  CornerDownLeft,
   Github,
-  LifeBuoy,
   House,
-  Mic,
-  Paperclip,
+  LifeBuoy,
   Rabbit,
   Settings,
   Settings2,
@@ -29,8 +20,6 @@ import {
   Triangle,
   Turtle,
 } from 'lucide-react'
-
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -42,20 +31,15 @@ import {
 } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Home } from '@/pages/home.tsx'
+import { Chat } from '@/pages/chat.tsx'
+import { Help } from '@/pages/help.tsx'
+import { Docs } from '@/pages/docs.tsx'
+import { SettingsPage } from '@/pages/settings.tsx'
+import { EnvironmentPage } from '@/pages/environment.tsx'
 
 export const description =
   'An AI playground with a sidebar navigation and a main content area. The playground has a header with a settings drawer and a share button. The sidebar has navigation links and a user menu. The main content area shows a form to configure the model and messages.'
@@ -68,11 +52,11 @@ interface SidebarItemProps {
 }
 
 const SidebarItem: React.FC<SidebarItemProps> = ({
-  to,
-  label,
-  icon,
-  className = '',
-}) => {
+                                                   to,
+                                                   label,
+                                                   icon,
+                                                   className = '',
+                                                 }) => {
   const location = useLocation()
   return (
     <Tooltip>
@@ -104,8 +88,8 @@ function Sidebar() {
       label: 'Home',
       icon: <House className="size-5" />,
     },
-    { to: '/models', label: 'Models', icon: <Bot className="size-5" /> },
     { to: '/versions', label: 'Versions', icon: <Code2 className="size-5" /> },
+    { to: '/models', label: 'Models', icon: <Bot className="size-5" /> },
     {
       to: '/environment',
       label: 'Environment',
@@ -120,7 +104,7 @@ function Sidebar() {
   ]
   const sidebarItemsSub = [
     { to: '/help', label: 'Help', icon: <LifeBuoy className="size-5" /> },
-    { to: '/github', label: 'GitHub', icon: <Github className="size-5" /> },
+    { to: 'https://github.com/hylarucoder/ComfyUI-Sidecar', label: 'GitHub', icon: <Github className="size-5" /> },
   ]
   return (
     <aside className="inset-y fixed  left-0 z-20 flex h-full flex-col border-r">
@@ -136,7 +120,7 @@ function Sidebar() {
             to={item.to}
             label={item.label}
             icon={item.icon}
-            className={item.className}
+            className={''}
           />
         ))}
       </nav>
@@ -285,165 +269,6 @@ function HeaderV2() {
   )
 }
 
-function Home() {
-  return (
-    <div>
-      <div
-        className="relative hidden flex-col items-start gap-8 md:flex"
-        x-chunk="dashboard-03-chunk-0"
-      >
-        <form className="grid w-full items-start gap-6">
-          <fieldset className="grid gap-6 rounded-lg border p-4">
-            <legend className="-ml-1 px-1 text-sm font-medium">Settings</legend>
-            <div className="grid gap-3">
-              <Label htmlFor="model">Model</Label>
-              <Select>
-                <SelectTrigger
-                  id="model"
-                  className="items-start [&_[data-description]]:hidden"
-                >
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="genesis">
-                    <div className="flex items-start gap-3 text-muted-foreground">
-                      <Rabbit className="size-5" />
-                      <div className="grid gap-0.5">
-                        <p>
-                          Neural{' '}
-                          <span className="font-medium text-foreground">
-                            Genesis
-                          </span>
-                        </p>
-                        <p className="text-xs" data-description>
-                          Our fastest model for general use cases.
-                        </p>
-                      </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="explorer">
-                    <div className="flex items-start gap-3 text-muted-foreground">
-                      <Bird className="size-5" />
-                      <div className="grid gap-0.5">
-                        <p>
-                          Neural{' '}
-                          <span className="font-medium text-foreground">
-                            Explorer
-                          </span>
-                        </p>
-                        <p className="text-xs" data-description>
-                          Performance and speed for efficiency.
-                        </p>
-                      </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="quantum">
-                    <div className="flex items-start gap-3 text-muted-foreground">
-                      <Turtle className="size-5" />
-                      <div className="grid gap-0.5">
-                        <p>
-                          Neural{' '}
-                          <span className="font-medium text-foreground">
-                            Quantum
-                          </span>
-                        </p>
-                        <p className="text-xs" data-description>
-                          The most powerful model for complex computations.
-                        </p>
-                      </div>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="temperature">Temperature</Label>
-              <Input id="temperature" type="number" placeholder="0.4" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-3">
-                <Label htmlFor="top-p">Top P</Label>
-                <Input id="top-p" type="number" placeholder="0.7" />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="top-k">Top K</Label>
-                <Input id="top-k" type="number" placeholder="0.0" />
-              </div>
-            </div>
-          </fieldset>
-          <fieldset className="grid gap-6 rounded-lg border p-4">
-            <legend className="-ml-1 px-1 text-sm font-medium">Messages</legend>
-            <div className="grid gap-3">
-              <Label htmlFor="role">Role</Label>
-              <Select defaultValue="system">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="system">System</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="assistant">Assistant</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-3">
-              <Label htmlFor="content">Content</Label>
-              <Textarea
-                id="content"
-                placeholder="You are a..."
-                className="min-h-[9.5rem]"
-              />
-            </div>
-          </fieldset>
-        </form>
-      </div>
-      <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2">
-        <Badge variant="outline" className="absolute right-3 top-3">
-          Output
-        </Badge>
-        <div className="flex-1" />
-        <form
-          className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
-          x-chunk="dashboard-03-chunk-1"
-        >
-          <Label htmlFor="message" className="sr-only">
-            Message
-          </Label>
-          <Textarea
-            id="message"
-            placeholder="Type your message here..."
-            className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
-          />
-          <div className="flex items-center p-3 pt-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Paperclip className="size-4" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Attach File</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Mic className="size-4" />
-                  <span className="sr-only">Use Microphone</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="top">Use Microphone</TooltipContent>
-            </Tooltip>
-            <Button type="submit" size="sm" className="ml-auto gap-1.5">
-              Send Message
-              <CornerDownLeft className="size-3.5" />
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
 const BasicLayout = () => {
   return (
     <TooltipProvider>
@@ -471,7 +296,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/models',
-        element: <div> models </div>,
+        element: <Chat />,
       },
       {
         path: '/initialization',
@@ -483,19 +308,19 @@ const router = createBrowserRouter([
       },
       {
         path: '/environment',
-        element: <div> environment </div>,
+        element: <EnvironmentPage />,
       },
       {
         path: '/docs',
-        element: <div> docs </div>,
+        element: <Docs />,
       },
       {
         path: '/help',
-        element: <div> help </div>,
+        element: <Help />,
       },
       {
         path: '/settings',
-        element: <div> settings </div>,
+        element: <SettingsPage />,
       },
       {
         path: '/account',
@@ -520,5 +345,5 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </React.StrictMode>,
 )

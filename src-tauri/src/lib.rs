@@ -30,13 +30,19 @@ fn pull_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[tauri::command]
-fn list_commit(path: &str) -> Result<bool, String> {
+fn git_list_commits(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
 
 #[tauri::command]
-fn check_repo_status(path: &str) -> Result<bool, String> {
+fn git_check_commit(path: &str) -> Result<bool, String> {
+    stats_repo(path).unwrap();
+    Ok(true)
+}
+
+#[tauri::command]
+fn git_check_version(path: &str) -> Result<bool, String> {
     stats_repo(path).unwrap();
     Ok(true)
 }
@@ -89,7 +95,7 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![check_repo_status])
+        .invoke_handler(tauri::generate_handler![git_check_commit])
         .invoke_handler(tauri::generate_handler![repo_git_log])
         // .invoke_handler(tauri::generate_handler![clone_repo])
         // .invoke_handler(tauri::generate_handler![pull_repo])
