@@ -2,9 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import {createBrowserRouter, Link, Outlet, RouterProvider} from "react-router-dom";
-import {Home} from "@/pages/home.tsx";
 import {createStyles} from "antd-style";
-import {Button, Space} from "antd";
+import {Space} from "antd";
 import {HomeOutlined, SettingOutlined} from "@ant-design/icons";
 import {Versions} from "@/pages/versions.tsx";
 
@@ -51,7 +50,7 @@ function Sidebar() {
                 display: 'flex',
             }}>
                 <Link to={"/"}>
-                    <HomeOutlined size={60}/>
+                    <HomeOutlined size={60} color={"black"}/>
                 </Link>
                 <br/>
                 <Link to={"/initialization"}> 首次配置页</Link>
