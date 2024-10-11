@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea.tsx'
 import { Badge } from '@/components/ui/badge.tsx'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx'
 import { Button } from '@/components/ui/button.tsx'
-import React from 'react'
 
 export function Chat() {
   return (

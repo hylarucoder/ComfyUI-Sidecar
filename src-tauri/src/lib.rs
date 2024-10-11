@@ -20,13 +20,13 @@ fn hello(name: &str) -> String {
 }
 
 #[tauri::command]
-fn repo_git_clone(repo_url: &str, path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    git_clone(repo_url, path)
+fn repo_git_clone(repo_url: &str, path: &str) -> Result<(), String> {
+    git_clone(repo_url, path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-fn repo_git_pull(path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    git_pull(path)
+fn repo_git_pull(path: &str) -> Result<(), String> {
+    git_pull(path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
