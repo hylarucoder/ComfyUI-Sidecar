@@ -1,44 +1,68 @@
 use gix::{prelude::ObjectIdExt, Reference};
 use log::debug;
-use std::fmt::Debug;
 use std::io::Write;
 use std::path::Path;
+use gix::{
+    bstr::{BString, ByteSlice},
+    date::time::format,
+};
+use gix_traverse::commit::simple::Sorting;
 
-pub fn git_log(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+struct LogEntryInfo {
+    commit_id: String,
+    parents: Vec<String>,
+    author: BString,
+    time: String,
+    message: BString,
+}
+pub fn git_log(path: &str) -> anyhow::Result<Vec<String>> {
     let repo = gix::discover(path)?;
-    debug!(
-        "Repo: {}",
-        repo.work_dir().unwrap_or_else(|| repo.git_dir()).display()
+    let commit = repo
+        .rev_parse_single("HEAD")?
+        .object()?
+        .try_into_commit()?;
+
+    let sorting = Sorting::ByCommitTimeNewestFirst;
+
+    let log_iter: Box<dyn Iterator<Item = anyhow::Result<LogEntryInfo>>> = Box::new(
+        repo.rev_walk([commit.id])
+            .sorting(sorting)
+            .all()?
+            .map(|info| -> anyhow::Result<_> {
+                let info = info?;
+                let commit = info.object()?;
+                let commit_ref = commit.decode()?;
+                Ok(LogEntryInfo {
+                    commit_id: commit.id().to_hex().to_string(),
+                    parents: info.parent_ids().map(|id| id.shorten_or_id().to_string()).collect(),
+                    author: {
+                        let mut buf = Vec::new();
+                        commit_ref.author.actor().write_to(&mut buf)?;
+                        buf.into()
+                    },
+                    time: commit_ref.author.time.format(format::DEFAULT),
+                    message: commit_ref.message.to_owned(),
+                })
+            }),
     );
 
-    // traversal involving date caused it to be set
-    let mut oid = repo
-        .head()?
-        .try_into_peeled_id()?
-        .ok_or("not ok")?
-        .ancestors()
-        .all()?
-        .map_while(Result::ok);
-
-    let mut commits = Vec::new();
-    for (i, commit) in oid.take(10).enumerate() {
-        let time = commit.commit_time();
-        let message = commit.object().unwrap().id.to_hex().to_string();
-        let hash = commit.id.to_hex().to_string();
-
-        commits.push(format!(
-            "Commit {}: {} - {} - {}",
-            i + 1,
-            time,
-            hash,
-            message
-        ));
-        if i == 9 {
-            break;
+    let mut result = Vec::new();
+    for entry in log_iter {
+        let entry = entry?;
+        let mut commit_info = String::new();
+        commit_info.push_str(&format!("commit {}\n", entry.commit_id));
+        if entry.parents.len() > 1 {
+            commit_info.push_str(&format!("Merge: {}\n", entry.parents.join(" ")));
         }
+        commit_info.push_str(&format!("Author: {}\n", String::from_utf8_lossy(&entry.author)));
+        commit_info.push_str(&format!("Date:   {}\n\n", entry.time));
+        for line in entry.message.lines() {
+            commit_info.push_str(&format!("    {}\n", line.as_bstr()));
+        }
+        result.push(commit_info);
     }
 
-    Ok(commits)
+    Ok(result)
 }
 
 pub fn stats_repo(path: &str) -> Result<(), Box<dyn std::error::Error>> {

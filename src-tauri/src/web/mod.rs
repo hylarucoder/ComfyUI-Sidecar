@@ -1,10 +1,9 @@
 use axum::body::Body;
 use axum::extract::{Path, State};
-use axum::handler::HandlerWithoutStateExt;
 use axum::http::Request;
 use axum::response::IntoResponse;
-use axum::routing::{get, post};
-use axum::{http::StatusCode, response::Response, Json, Router};
+use axum::routing::get;
+use axum::{http::StatusCode, response::Response, Router};
 use hyper::Uri;
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::rt::TokioExecutor;
