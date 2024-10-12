@@ -1,8 +1,7 @@
 export function EnvironmentPage() {
   return (
-    <div>
-      versions
-      EnvironmentPage
+    <div className={'p-4'}>
+      Environment
     </div>
   )
 }

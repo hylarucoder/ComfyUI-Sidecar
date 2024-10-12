@@ -2,6 +2,7 @@ use axum::routing::{get, head, post};
 use axum::Router;
 use serde::Deserialize;
 use std::sync::OnceLock;
+use gix::bstr::BString;
 use tower_http::services::{ServeDir, ServeFile};
 
 mod git_plus;
@@ -11,7 +12,9 @@ use git_plus::git_clone;
 use git_plus::git_pull;
 use git_plus::stats_repo;
 use tauri::{Manager, Window};
+use crate::git_plus::git_log;
 
+// we must manually implement serde::Serialize
 static WINDOW: OnceLock<Window> = OnceLock::new();
 
 #[tauri::command]
@@ -47,14 +50,52 @@ fn repo_git_checkout_version(path: &str) -> Result<bool, String> {
     Ok(true)
 }
 
+#[derive(serde::Serialize)]
+struct LogEntryInfo {
+    commit_id: String,
+    parents: Vec<String>,
+    author: String,
+    time: String,
+    message: String,
+}
+
+
+#[derive(Debug)]
+pub enum TauriResponseError {
+    DataError,
+    OrderError,
+    GitLogError,
+}
+
+#[derive(serde::Serialize)]
+struct GitLogResponse {
+    items: Vec<LogEntryInfo>,
+}
+
 #[tauri::command]
-fn repo_git_log(path: &str) -> Result<Vec<String>, String> {
-    // let log = git_log(path).unwrap();
-    Ok(vec![
-        "Commit 1: 2023-07-15 10:30:00 - abc123 - Initial commit".to_string(),
-        "Commit 2: 2023-07-16 14:45:00 - def456 - Add new feature".to_string(),
-        "Commit 3: 2023-07-17 09:15:00 - ghi789 - Fix bug in main module".to_string(),
-    ])
+async fn repo_git_log(path: &str) -> Result<GitLogResponse, String> {
+    println!("path {}", path);
+    match git_log(path) {
+        Err(_) => Err("git log error".to_string()),
+        Ok(log_entries) => {
+            let entries = log_entries.into_iter().map(|entry| {
+                // Parse the log entry string into LogEntryInfo
+                // This is a simplified example, you'll need to adjust based on your actual log format
+                let mut lines = entry.lines();
+                LogEntryInfo {
+                    commit_id: lines.next().unwrap_or("").trim_start_matches("commit ").to_string(),
+                    parents: vec![], // You'll need to parse this from the "Merge:" line if present
+                    author: lines.next().unwrap_or("").trim_start_matches("Author: ").to_string(),
+                    time: lines.next().unwrap_or("").trim_start_matches("Date:   ").to_string(),
+                    message: lines.skip(1).collect::<Vec<&str>>().join("\n"),
+                }
+            }).collect();
+
+            Ok(GitLogResponse {
+                items: entries,
+            })
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -78,6 +119,16 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_shell::init())
+        .invoke_handler(tauri::generate_handler![hello])
+        .invoke_handler(tauri::generate_handler![repo_git_clone])
+        .invoke_handler(tauri::generate_handler![repo_git_pull])
+        .invoke_handler(tauri::generate_handler![repo_git_list_commits])
+        .invoke_handler(tauri::generate_handler![repo_git_checkout_commit])
+        .invoke_handler(tauri::generate_handler![repo_git_checkout_version])
+        .invoke_handler(tauri::generate_handler![repo_git_log])
+        // .invoke_handler(tauri::generate_handler![clone_repo])
+        // .invoke_handler(tauri::generate_handler![pull_repo])
         .setup(|app| {
             let window = app.get_window("main").unwrap();
 
@@ -93,16 +144,6 @@ pub fn run() {
 
             Ok(())
         })
-        .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![hello])
-        .invoke_handler(tauri::generate_handler![repo_git_clone])
-        .invoke_handler(tauri::generate_handler![repo_git_pull])
-        .invoke_handler(tauri::generate_handler![repo_git_list_commits])
-        .invoke_handler(tauri::generate_handler![repo_git_checkout_commit])
-        .invoke_handler(tauri::generate_handler![repo_git_checkout_version])
-        .invoke_handler(tauri::generate_handler![repo_git_log])
-        // .invoke_handler(tauri::generate_handler![clone_repo])
-        // .invoke_handler(tauri::generate_handler![pull_repo])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,38 +1,67 @@
-import { invoke } from '@tauri-apps/api/core'
 import { useEffect, useState } from 'react'
+import { getStore } from '@/utils/store.ts'
+import { Button } from '@/components/ui/button.tsx'
+import { invoke } from '@tauri-apps/api/core'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { formatTime } from '@/utils/time'
+import { formatAuthor, formatCommitId, truncateText } from '@/utils/text'
+
+interface LogEntryInfo {
+  commit_id: string
+  author: string
+  time: string
+  message: string
+}
 
 export function Versions() {
-  const [gitLog, setGitLog] = useState([])
+  const [comfyUIPath, setComfyUIPath] = useState('')
+  const [items, setItems] = useState<LogEntryInfo[]>([])
 
-  async function checkAndUpdateRepo() {
-    try {
-      // const isUpToDate = await invoke("check_repo_status", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
-      // setIsLatest(isUpToDate as boolean);
-
-      // if (!isUpToDate) {
-      //   const pullResult = await invoke("pull_repo", { path: "/Users/lucasay/Projects/project-aigc/ComfyUI" });
-      //   setUpdateMessage(pullResult ? "Repository updated successfully" : "Failed to update repository");
-      // }
-      const log = await invoke('repo_git_log', {
-        path: '/Users/lucasay/Projects/project-aigc/ComfyUI',
-      })
-      setGitLog(log as any)
-    } catch (error) {
-      console.error('Error checking/updating repository:', error)
-    }
+  const initial = async () => {
+    const path = await getStore().get('comfyui-path')
+    console.log('path', path)
+    // @ts-ignore
+    setComfyUIPath(path)
+    const res = await invoke('repo_git_log', {
+      path: path,
+    })
+    setItems(res.items as LogEntryInfo[])
   }
 
   useEffect(() => {
-    checkAndUpdateRepo()
+    console.log('--->u s')
+    initial()
   }, [])
 
   return (
-    <div>
-      versions
-      <div>
-        {gitLog.map((log, index) => (
-          <p key={index}>{log}</p>
-        ))}
+    <div className={'w-full p-4'}>
+      <div className={'mb-4'}>
+        <p>ComfyUI Path: {comfyUIPath}</p>
+      </div>
+      <div className="rounded-md border">
+        <Table className={'w-full'}>
+          <TableCaption>Git Log</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Commit</TableHead>
+              <TableHead>Author</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Message</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => (
+              <TableRow key={item.commit_id}>
+                <TableCell>{formatCommitId(item.commit_id)}</TableCell>
+                <TableCell>{formatAuthor(item.author)}</TableCell>
+                <TableCell>{formatTime(item.time)}</TableCell>
+                <TableCell>{truncateText(item.message, 50)}</TableCell>
+                <TableCell><Button size={'sm'}> Switch </Button></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
