@@ -6,6 +6,7 @@ use gix::{
     bstr::{BString, ByteSlice},
     date::time::format,
 };
+use gix_object::tree::EntryKind::{Blob, BlobExecutable, Commit, Link, Tree};
 use gix_traverse::commit::simple::Sorting;
 
 struct LogEntryInfo {

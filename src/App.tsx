@@ -271,7 +271,7 @@ function HeaderV2() {
 const BasicLayout = () => {
   return (
     <TooltipProvider>
-      <div className="grid h-screen w-full pl-[53px]">
+      <div className="grid border-t-[1px] h-screen w-full pl-[53px]">
         <Sidebar />
         <div className="flex flex-col">
           <HeaderV2 />
