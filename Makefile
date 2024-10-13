@@ -1,9 +1,8 @@
 start:
-	pnpm tauri dev
+	wails dev
 
 prod:
-	pnpm tauri build
+	wails build
 
 clean-build:
-	cd ./src-tauri && cargo clean && cd -
-	pnpm tauri build
+	...
